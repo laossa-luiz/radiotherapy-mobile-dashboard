@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <!-- Viewport para garantir enquadramento correto em smartphones -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dashboard Radioterapia Mobile Fix</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Trava vazamento horizontal em celulares */
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+
+  <!-- CABEÇALHO RESPONSIVO -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 p-4">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      
+      <!-- Título + Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-teal-500/20 border border-teal-500/40 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-lg md:text-xl font-bold text-white leading-tight">Gestão em Radioterapia</h1>
+            <span class="text-xs bg-teal-500/10 text-teal-400 border border-teal-500/30 px-2 py-0.5 rounded-full font-mono">v3.3 Mobile</span>
+          </div>
+          <p class="text-xs text-slate-400">Monitoramento Clínico & Operacional</p>
+        </div>
+      </div>
+
+      <!-- Ações do Topo -->
+      <div class="flex items-center gap-2 self-end md:self-auto w-full md:w-auto justify-end">
+        <button onclick="resetFilters()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Limpar Filtros
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4 space-y-6">
+
+    <!-- FILTROS SANFONA/COLLAPSIBLE NO MOBILE -->
+    <details class="bg-slate-900 border border-slate-800 rounded-xl p-4 transition" open>
+      <summary class="font-semibold text-sm text-slate-200 cursor-pointer flex items-center justify-between select-none">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.447.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+          Filtros Operacionais
+        </span>
+        <span class="text-xs text-teal-400 bg-teal-500/10 px-2 py-1 rounded">Toque para expandir/recolher</span>
+      </summary>
+
+      <!-- Grid Responsiva (1 col no mobile, 3 nas telas médias, 6 no PC) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-4 pt-3 border-t border-slate-800">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Período / Ano</label>
+          <select id="filterAno" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
+            <option value="todos">Todos os Anos</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Unidade / Centro</label>
+          <select id="filterUnidade" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
+            <option value="todas">Todas as Unidades</option>
+            <option value="Central">Unidade Central</option>
+            <option value="Zul-Onco">Unidade Onco-Sul</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Sítio Tumoral</label>
+          <select id="filterSitio" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
+            <option value="todos">Todos os Sítios</option>
+            <option value="Mama">Mama</option>
+            <option value="Prostata">Próstata</option>
+            <option value="Pulmao">Pulmão</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Técnica</label>
+          <select id="filterTecnica" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
+            <option value="todas">Todas as Técnicas</option>
+            <option value="VMAT">VMAT</option>
+            <option value="IMRT">IMRT</option>
+            <option value="3D-CRT">3D-CRT</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Acelerador Linear</label>
+          <select id="filterLinac" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
+            <option value="todos">Todos Equipamentos</option>
+            <option value="LINAC-01">LINAC-01</option>
+            <option value="LINAC-02">LINAC-02</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Convênio</label>
+          <select id="filterConvenio" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
+            <option value="todos">Todos os Convênios</option>
+            <option value="Bradesco">Bradesco Saúde</option>
+            <option value="SulAmerica">SulAmérica</option>
+            <option value="SUS">SUS</option>
+          </select>
+        </div>
+      </div>
+    </details>
+
+    <!-- CARTOES KPI (1 COLUNA NO CELULAR, 2 EM TABLETS, 4 NO PC) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400 font-medium">Pacientes Ativos</p>
+        <p id="kpiPacientes" class="text-2xl font-bold text-white mt-1">98</p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400 font-medium">Sessões / Dia</p>
+        <p id="kpiSessoes" class="text-2xl font-bold text-teal-400 mt-1">142</p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400 font-medium">Tempo Méc. Espera (Dias)</p>
+        <p id="kpiEspera" class="text-2xl font-bold text-amber-400 mt-1">4.2d</p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400 font-medium">Uptime LINACs</p>
+        <p id="kpiUptime" class="text-2xl font-bold text-emerald-400 mt-1">98.5%</p>
+      </div>
+    </div>
+
+    <!-- ÁREA DE GRÁFICOS (REORGANIZADA EM 1 COLUNA NO MOBILE) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <h3 class="text-sm font-semibold text-slate-200 mb-4">Sítio Tumoral vs. Volume</h3>
+        <div class="h-64 relative">
+          <canvas id="chartSitios"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <h3 class="text-sm font-semibold text-slate-200 mb-4">Uso de Técnicas (VMAT / IMRT)</h3>
+        <div class="h-64 relative">
+          <canvas id="chartTecnicas"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Inicialização do Chart.js
+    let chartSitios, chartTecnicas;
+
+    function initCharts() {
+      const ctx1 = document.getElementById('chartSitios').getContext('2d');
+      chartSitios = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: ['Mama', 'Próstata', 'Pulmão', 'Outros'],
+          datasets: [{
+            label: 'Atendimentos',
+            data: [42, 35, 12, 9],
+            backgroundColor: '#0d9488'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+          }
+        }
+      });
+
+      const ctx2 = document.getElementById('chartTecnicas').getContext('2d');
+      chartTecnicas = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['VMAT', 'IMRT', '3D-CRT'],
+          datasets: [{
+            data: [55, 30, 15],
+            backgroundColor: ['#0d9488', '#3b82f6', '#f59e0b']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+        }
+      });
+    }
+
+    function updateDashboard() {
+      // Simulação de Recálculo de KPIs dinâmicos ao alterar filtros
+      document.getElementById('kpiPacientes').innerText = Math.floor(Math.random() * 40) + 70;
+      document.getElementById('kpiSessoes').innerText = Math.floor(Math.random() * 50) + 110;
+      
+      chartSitios.data.datasets[0].data = [
+        Math.floor(Math.random() * 30) + 20,
+        Math.floor(Math.random() * 30) + 15,
+        Math.floor(Math.random() * 10) + 5,
+        Math.floor(Math.random() * 10) + 2
+      ];
+      chartSitios.update();
+    }
+
+    function resetFilters() {
+      document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+      updateDashboard();
+    }
+
+    window.onload = initCharts;
+  </script>
+</body>
+</html>
