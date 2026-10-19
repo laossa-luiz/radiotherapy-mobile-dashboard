@@ -63,11 +63,3 @@ Generates real-time analytical alerts based on active filter selections (e.g., p
 * **AI Copilot (Prompt Engineering):** Accelerated code structuring, component design, and clinical domain logic mapping.
 
 ---
-
-## ⚙️ How to Run
-
-No Node.js setup or backend dependencies are required.
-
-1. Clone this repository:
-   ```bash
-   git clone [https://github.com/YOUR-USERNAME/YOUR-REPOSITORY-NAME.git](https://github.com/YOUR-USERNAME/YOUR-REPOSITORY-NAME.git)
