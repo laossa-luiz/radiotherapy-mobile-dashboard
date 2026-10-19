@@ -1,232 +1,714 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
-  <!-- Viewport para garantir enquadramento correto em smartphones -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dashboard Radioterapia Mobile Fix</title>
+  <title>Dashboard Analítico de Gestão em Radioterapia</title>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            medical: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    /* Trava vazamento horizontal em celulares */
     html, body {
       overflow-x: hidden;
       width: 100%;
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #f1f5f9;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(20, 184, 166, 0.4);
+      box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.15);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-teal-500 selection:text-white">
 
-  <!-- CABEÇALHO RESPONSIVO -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 p-4">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-      
-      <!-- Título + Logo -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-teal-500/20 border border-teal-500/40 flex items-center justify-center shrink-0">
-          <svg class="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
+  <!-- HEADER ADAPTATIVO -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <div class="p-2 bg-teal-600 rounded-xl shadow-lg shadow-teal-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="activity" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <h1 class="text-lg md:text-xl font-bold text-white leading-tight">Gestão em Radioterapia</h1>
-            <span class="text-xs bg-teal-500/10 text-teal-400 border border-teal-500/30 px-2 py-0.5 rounded-full font-mono">v3.3 Mobile</span>
-          </div>
-          <p class="text-xs text-slate-400">Monitoramento Clínico & Operacional</p>
+          <h1 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            Gestão em Radioterapia
+            <span class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">v3.4 Mobile</span>
+          </h1>
+          <p class="text-[11px] sm:text-xs text-slate-400">Monitoramento Clínico & Operacional</p>
         </div>
       </div>
 
-      <!-- Ações do Topo -->
-      <div class="flex items-center gap-2 self-end md:self-auto w-full md:w-auto justify-end">
-        <button onclick="resetFilters()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <!-- BOTÕES DE AÇÃO NO HEADER -->
+      <div class="flex items-center justify-end gap-2 w-full sm:w-auto">
+        <button id="resetFiltersBtn" onclick="resetFilters()" class="px-2.5 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all flex items-center gap-1.5 hover:text-white">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
           Limpar Filtros
+        </button>
+        <button onclick="exportToCSV()" class="px-2.5 py-1.5 text-xs font-medium text-white bg-teal-600 hover:bg-teal-500 rounded-lg transition-all shadow-md shadow-teal-600/30 flex items-center gap-1.5">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          Exportar (CSV)
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto p-4 space-y-6">
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- FILTROS SANFONA/COLLAPSIBLE NO MOBILE -->
-    <details class="bg-slate-900 border border-slate-800 rounded-xl p-4 transition" open>
-      <summary class="font-semibold text-sm text-slate-200 cursor-pointer flex items-center justify-between select-none">
-        <span class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.447.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-          Filtros Operacionais
+    <!-- FILTERS SECTION (SANFONA NO MOBILE) -->
+    <details class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-xl" open>
+      <summary class="flex items-center justify-between cursor-pointer select-none">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-teal-400"></i>
+          <h2 class="text-xs sm:text-sm font-semibold text-slate-200">Filtros Operacionais & Clínicos</h2>
+        </div>
+        <span id="activeFiltersBadge" class="text-[10px] sm:text-xs text-teal-400 bg-teal-950/60 border border-teal-800/50 px-2.5 py-1 rounded-full font-mono">
+          Carregando registros...
         </span>
-        <span class="text-xs text-teal-400 bg-teal-500/10 px-2 py-1 rounded">Toque para expandir/recolher</span>
       </summary>
 
-      <!-- Grid Responsiva (1 col no mobile, 3 nas telas médias, 6 no PC) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-4 pt-3 border-t border-slate-800">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mt-4 pt-3 border-t border-slate-800">
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Período / Ano</label>
-          <select id="filterAno" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
-            <option value="todos">Todos os Anos</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
+          <label class="block text-[11px] font-medium text-slate-400 mb-1">Período / Ano</label>
+          <select id="filterPeriod" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500">
+            <option value="ALL">Todos os Anos</option>
+            <option value="2026">Ano 2026</option>
+            <option value="2025">Ano 2025</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Unidade / Centro</label>
-          <select id="filterUnidade" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
-            <option value="todas">Todas as Unidades</option>
-            <option value="Central">Unidade Central</option>
-            <option value="Zul-Onco">Unidade Onco-Sul</option>
+          <label class="block text-[11px] font-medium text-slate-400 mb-1">Unidade / Centro</label>
+          <select id="filterUnit" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500">
+            <option value="ALL">Todas as Unidades</option>
+            <option value="Unidade Central">Unidade Central</option>
+            <option value="Unidade Zona Sul">Unidade Zona Sul</option>
+            <option value="Centro Norte">Centro Norte</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Sítio Tumoral</label>
-          <select id="filterSitio" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
-            <option value="todos">Todos os Sítios</option>
+          <label class="block text-[11px] font-medium text-slate-400 mb-1">Sítio Tumoral</label>
+          <select id="filterSite" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500">
+            <option value="ALL">Todos os Sítios</option>
             <option value="Mama">Mama</option>
-            <option value="Prostata">Próstata</option>
-            <option value="Pulmao">Pulmão</option>
+            <option value="Próstata">Próstata</option>
+            <option value="Pulmão / Tórax">Pulmão / Tórax</option>
+            <option value="Cabeça e Pescoço">Cabeça e Pescoço</option>
+            <option value="Pelve / Ginecologia">Pelve / Ginecologia</option>
+            <option value="SNC / Encéfalo">SNC / Encéfalo</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Técnica</label>
-          <select id="filterTecnica" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
-            <option value="todas">Todas as Técnicas</option>
-            <option value="VMAT">VMAT</option>
+          <label class="block text-[11px] font-medium text-slate-400 mb-1">Técnica</label>
+          <select id="filterTechnique" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500">
+            <option value="ALL">Todas as Técnicas</option>
+            <option value="VMAT / RapidArc">VMAT / RapidArc</option>
             <option value="IMRT">IMRT</option>
             <option value="3D-CRT">3D-CRT</option>
+            <option value="SBRT / SRS">SBRT / SRS</option>
+            <option value="Braquiterapia">Braquiterapia</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Acelerador Linear</label>
-          <select id="filterLinac" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
-            <option value="todos">Todos Equipamentos</option>
-            <option value="LINAC-01">LINAC-01</option>
-            <option value="LINAC-02">LINAC-02</option>
+          <label class="block text-[11px] font-medium text-slate-400 mb-1">Acelerador</label>
+          <select id="filterLINAC" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500">
+            <option value="ALL">Todos Equipamentos</option>
+            <option value="Elekta Versa HD - AL1">Elekta Versa HD (AL-01)</option>
+            <option value="Varian TrueBeam - AL2">Varian TrueBeam (AL-02)</option>
+            <option value="Varian Halcyon - AL3">Varian Halcyon (AL-03)</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Convênio</label>
-          <select id="filterConvenio" onchange="updateDashboard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-teal-500 outline-none">
-            <option value="todos">Todos os Convênios</option>
-            <option value="Bradesco">Bradesco Saúde</option>
-            <option value="SulAmerica">SulAmérica</option>
+          <label class="block text-[11px] font-medium text-slate-400 mb-1">Convênio</label>
+          <select id="filterPayor" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500">
+            <option value="ALL">Todos os Convênios</option>
             <option value="SUS">SUS</option>
+            <option value="Bradesco Saúde">Bradesco Saúde</option>
+            <option value="Amil">Amil</option>
+            <option value="Unimed">Unimed</option>
+            <option value="Particular / Corp">Particular</option>
           </select>
         </div>
       </div>
     </details>
 
-    <!-- CARTOES KPI (1 COLUNA NO CELULAR, 2 EM TABLETS, 4 NO PC) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-        <p class="text-xs text-slate-400 font-medium">Pacientes Ativos</p>
-        <p id="kpiPacientes" class="text-2xl font-bold text-white mt-1">98</p>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-        <p class="text-xs text-slate-400 font-medium">Sessões / Dia</p>
-        <p id="kpiSessoes" class="text-2xl font-bold text-teal-400 mt-1">142</p>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-        <p class="text-xs text-slate-400 font-medium">Tempo Méc. Espera (Dias)</p>
-        <p id="kpiEspera" class="text-2xl font-bold text-amber-400 mt-1">4.2d</p>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-        <p class="text-xs text-slate-400 font-medium">Uptime LINACs</p>
-        <p id="kpiUptime" class="text-2xl font-bold text-emerald-400 mt-1">98.5%</p>
-      </div>
-    </div>
-
-    <!-- ÁREA DE GRÁFICOS (REORGANIZADA EM 1 COLUNA NO MOBILE) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-        <h3 class="text-sm font-semibold text-slate-200 mb-4">Sítio Tumoral vs. Volume</h3>
-        <div class="h-64 relative">
-          <canvas id="chartSitios"></canvas>
+    <!-- KPI CARDS SECTION -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass-card glass-card-hover p-4 sm:p-5 rounded-2xl transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pacientes Ativos</span>
+          <div class="p-2 bg-teal-500/10 rounded-xl border border-teal-500/20 text-teal-400">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 sm:mt-3">
+          <p id="kpiActivePatients" class="text-xl sm:text-2xl font-bold text-white font-mono">0</p>
+          <p class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +8.4% vs mês anterior
+          </p>
         </div>
       </div>
 
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-        <h3 class="text-sm font-semibold text-slate-200 mb-4">Uso de Técnicas (VMAT / IMRT)</h3>
-        <div class="h-64 relative">
-          <canvas id="chartTecnicas"></canvas>
+      <div class="glass-card glass-card-hover p-4 sm:p-5 rounded-2xl transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Sessões Realizadas</span>
+          <div class="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20 text-blue-400">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 sm:mt-3">
+          <p id="kpiSessionsCount" class="text-xl sm:text-2xl font-bold text-white font-mono">0</p>
+          <p class="text-xs text-slate-300 mt-1">Média: <span id="kpiAvgSessionTime" class="font-bold text-teal-300 font-mono">11.4 min</span></p>
         </div>
       </div>
-    </div>
+
+      <div class="glass-card glass-card-hover p-4 sm:p-5 rounded-2xl transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Fila de Espera Médica</span>
+          <div class="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 sm:mt-3">
+          <p id="kpiWaitDays" class="text-xl sm:text-2xl font-bold text-white font-mono">0.0 dias</p>
+          <p class="text-xs text-slate-400 mt-1">Meta SUS (&lt;15d): <span id="kpiWaitStatus" class="font-bold text-emerald-400">Em Dia</span></p>
+        </div>
+      </div>
+
+      <div class="glass-card glass-card-hover p-4 sm:p-5 rounded-2xl transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Ocupação & DQA</span>
+          <div class="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-indigo-400">
+            <i data-lucide="cpu" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 sm:mt-3">
+          <p id="kpiOccupancyRate" class="text-xl sm:text-2xl font-bold text-white font-mono">0.0%</p>
+          <p class="text-xs text-emerald-400 mt-1">DQA Gamma: <span id="kpiDqaPass" class="font-bold text-indigo-300 font-mono">98.9%</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- INSIGHTS BANNER -->
+    <section class="glass-card rounded-2xl p-4 sm:p-5 border border-teal-900/40 bg-gradient-to-r from-slate-900 via-teal-950/20 to-slate-900 shadow-lg">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-teal-400"></i>
+          <h3 class="text-xs sm:text-sm font-bold text-teal-200 tracking-wide uppercase">Insights Automáticos em Radioterapia</h3>
+        </div>
+      </div>
+      <div id="insightsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <!-- CHARTS GRID -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 glass-card rounded-2xl p-4 sm:p-5 border border-slate-800">
+        <h3 class="text-xs sm:text-sm font-bold text-slate-200 mb-2">Evolução Mensal de Sessões & Novos Casos</h3>
+        <div class="relative w-full h-60 sm:h-72">
+          <canvas id="sessionsChart"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800">
+        <h3 class="text-xs sm:text-sm font-bold text-slate-200 mb-2">Distribuição por Sítio Tumoral</h3>
+        <div class="relative w-full h-60 sm:h-72 flex items-center justify-center">
+          <canvas id="siteChart"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800">
+        <h3 class="text-xs sm:text-sm font-bold text-slate-200 mb-2">Volume por Técnica de Radiação</h3>
+        <div class="relative w-full h-56 sm:h-64">
+          <canvas id="techniqueChart"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800">
+        <h3 class="text-xs sm:text-sm font-bold text-slate-200 mb-2">Aceleradores Lineares (Carga de Trabalho)</h3>
+        <div class="relative w-full h-56 sm:h-64">
+          <canvas id="linacChart"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800">
+        <h3 class="text-xs sm:text-sm font-bold text-slate-200 mb-2">Fila de Espera Média por Convênio</h3>
+        <div class="relative w-full h-56 sm:h-64">
+          <canvas id="payorWaitChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- PATIENT TABLE SECTION -->
+    <section class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800 space-y-4">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
+            <i data-lucide="folder-kanban" class="w-4 h-4 text-teal-400"></i>
+            Prontuários & Planos de Tratamento
+          </h3>
+          <p class="text-[11px] text-slate-400">Acompanhamento detalhado de fracionamento e dose</p>
+        </div>
+
+        <!-- BUSCA + BOTÃO EXTRAIR SEGUNDA OPÇÃO (MOBILE FRIENDLY) -->
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="relative flex-1 sm:w-64">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="tableSearch" onkeyup="handleSearch()" placeholder="Buscar paciente, ID..." class="pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-teal-500 w-full">
+          </div>
+          <button onclick="exportToCSV()" class="px-3 py-1.5 text-xs font-medium text-teal-300 bg-teal-950/60 hover:bg-teal-900 border border-teal-700/50 rounded-xl transition-all shrink-0 flex items-center gap-1">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Exportar CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela com Scroll Horizontal Limpo -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="text-slate-400 font-semibold border-b border-slate-800 bg-slate-900/50">
+            <tr>
+              <th scope="col" class="py-2.5 px-3 cursor-pointer hover:text-white" onclick="sortTable('id')">Prontuário</th>
+              <th scope="col" class="py-2.5 px-3 cursor-pointer hover:text-white" onclick="sortTable('paciente')">Paciente</th>
+              <th scope="col" class="py-2.5 px-3">Sítio Tumoral</th>
+              <th scope="col" class="py-2.5 px-3">Técnica</th>
+              <th scope="col" class="py-2.5 px-3">Acelerador</th>
+              <th scope="col" class="py-2.5 px-3 text-center" onclick="sortTable('fracaoAtual')">Frações</th>
+              <th scope="col" class="py-2.5 px-3 text-right" onclick="sortTable('esperaDias')">Espera</th>
+              <th scope="col" class="py-2.5 px-3">Convênio</th>
+              <th scope="col" class="py-2.5 px-3 text-center">Status</th>
+              <th scope="col" class="py-2.5 px-3 text-center">Plano</th>
+            </tr>
+          </thead>
+          <tbody id="patientsTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginação -->
+      <div class="flex flex-col sm:flex-row items-center justify-between pt-2 text-xs text-slate-400 gap-2 border-t border-slate-800">
+        <span id="tableInfo">Exibindo 0 de 0 prontuários</span>
+        <div class="flex items-center space-x-2">
+          <button id="btnPrevPage" onclick="changePage(-1)" class="px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg hover:bg-slate-800 disabled:opacity-40">Anterior</button>
+          <span id="pageIndicator" class="font-semibold text-slate-200">1 / 1</span>
+          <button id="btnNextPage" onclick="changePage(1)" class="px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg hover:bg-slate-800 disabled:opacity-40">Próximo</button>
+        </div>
+      </div>
+    </section>
 
   </main>
 
+  <!-- MODAL DE DETALHES -->
+  <div id="detailModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card max-w-xl w-full rounded-2xl border border-slate-700 p-5 shadow-2xl relative space-y-4">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 border-b border-slate-800 pb-3">
+        <div class="p-2 bg-teal-600/20 text-teal-400 rounded-xl border border-teal-500/30">
+          <i data-lucide="file-badge-2" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 id="modalTitle" class="text-sm sm:text-base font-bold text-white">Plano Radioterápico Integrado</h3>
+          <p id="modalSub" class="text-xs text-slate-400">Prontuário: #RT-0000</p>
+        </div>
+      </div>
+
+      <div id="modalBody" class="space-y-3 text-xs text-slate-300">
+        <!-- Injected via JS -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+        <span class="text-[10px] text-slate-500 font-mono">ICRU 83/91 Protocol Compliance</span>
+        <button onclick="closeModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-semibold">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
   <script>
-    // Inicialização do Chart.js
-    let chartSitios, chartTecnicas;
+    const units = ["Unidade Central", "Unidade Zona Sul", "Centro Norte"];
+    const tumorSites = {
+      "Mama": ["Mama Direita (3D/VMAT)", "Mama Esquerda (DIBH VMAT)", "Mama Bilateral pós-mastectomia"],
+      "Próstata": ["Próstata + Vesículas (VMAT)", "Próstata Leito Cirúrgico", "Próstata SBRT Hipofracionado"],
+      "Pulmão / Tórax": ["Pulmão Central (SBRT)", "Pulmão Periférico 3D", "Tórax Mediastino (IMRT)"],
+      "Cabeça e Pescoço": ["Orofaringe (VMAT)", "Laringe (IMRT)", "Cavidade Oral (VMAT)"],
+      "Pelve / Ginecologia": ["Colo Uterino (3D + Braqui)", "Reto Neoadjuvante (VMAT)", "Endométrio Pós-Op"],
+      "SNC / Encéfalo": ["Metástase Cerebral (SRS)", "Glioblastoma (IMRT)", "Meningioma (VMAT)"]
+    };
 
-    function initCharts() {
-      const ctx1 = document.getElementById('chartSitios').getContext('2d');
-      chartSitios = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: ['Mama', 'Próstata', 'Pulmão', 'Outros'],
-          datasets: [{
-            label: 'Atendimentos',
-            data: [42, 35, 12, 9],
-            backgroundColor: '#0d9488'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-          }
-        }
-      });
+    const techniques = ["VMAT / RapidArc", "IMRT", "3D-CRT", "SBRT / SRS", "Braquiterapia"];
+    const linacs = ["Elekta Versa HD - AL1", "Varian TrueBeam - AL2", "Varian Halcyon - AL3"];
+    const payors = ["SUS", "Bradesco Saúde", "Amil", "Unimed", "Particular / Corp"];
 
-      const ctx2 = document.getElementById('chartTecnicas').getContext('2d');
-      chartTecnicas = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-          labels: ['VMAT', 'IMRT', '3D-CRT'],
-          datasets: [{
-            data: [55, 30, 15],
-            backgroundColor: ['#0d9488', '#3b82f6', '#f59e0b']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
-        }
+    const doctors = ["Dr. Alexandre Castro", "Dra. Luciana Ferreira", "Dr. Fernando Ribeiro"];
+    const physicists = ["MSc. Roberto Nunes", "Esp. Camila Vance", "Dr. Marcelo Paiva"];
+
+    const patientNames = [
+      "Maria Eduarda Santos", "João Carlos Oliveira", "Ana Paula Ribeiro", "Antônio José Silva",
+      "Francisca Lima Costa", "Raimundo Nonato Souza", "Tânia Mara Fernandes", "Sérgio Augusto Prado",
+      "Cláudia Regina Martins", "Luiz Gonzaga Pereira", "Camila Beatriz Rocha", "Marcos Vinícius Barbosa"
+    ];
+
+    let seed = 98765;
+    function pseudoRandom() {
+      let x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    }
+
+    const rawData = [];
+    const startDate = new Date(2025, 0, 1);
+
+    for (let i = 1; i <= 160; i++) {
+      const unit = units[Math.floor(pseudoRandom() * units.length)];
+      const siteKeys = Object.keys(tumorSites);
+      const site = siteKeys[Math.floor(pseudoRandom() * siteKeys.length)];
+      const subDiagnosis = tumorSites[site][Math.floor(pseudoRandom() * tumorSites[site].length)];
+      
+      let tech = techniques[Math.floor(pseudoRandom() * techniques.length)];
+      if (site === "SNC / Encéfalo" && pseudoRandom() > 0.4) tech = "SBRT / SRS";
+
+      const linac = linacs[Math.floor(pseudoRandom() * linacs.length)];
+      const payor = payors[Math.floor(pseudoRandom() * payors.length)];
+      
+      const rStatus = pseudoRandom();
+      let status = "Em Andamento";
+      if (rStatus > 0.95) status = "Interrompido";
+      else if (rStatus > 0.87) status = "Em Planejamento";
+      else if (rStatus > 0.65) status = "Concluído";
+
+      const randomDays = Math.floor(pseudoRandom() * 540);
+      const d = new Date(startDate.getTime() + randomDays * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().split('T')[0];
+
+      let totalFractions = 25;
+      if (tech === "SBRT / SRS") totalFractions = Math.floor(pseudoRandom() * 3) + 3;
+      else if (site === "Mama") totalFractions = pseudoRandom() > 0.5 ? 15 : 25;
+      else if (site === "Próstata") totalFractions = pseudoRandom() > 0.5 ? 20 : 38;
+
+      let fracaoAtual = Math.floor(pseudoRandom() * totalFractions);
+      if (status === "Concluído") fracaoAtual = totalFractions;
+      if (status === "Em Planejamento") fracaoAtual = 0;
+
+      let esperaDias = Math.floor(pseudoRandom() * 18) + 5;
+      if (payor === "SUS") esperaDias += Math.floor(pseudoRandom() * 8);
+
+      const dosePerFraction = tech === "SBRT / SRS" ? (40 / totalFractions).toFixed(1) : (50 / totalFractions).toFixed(1);
+
+      rawData.push({
+        id: `PRT-${String(i).padStart(4, '0')}`,
+        dataInicio: dateStr,
+        ano: d.getFullYear().toString(),
+        mes: d.toLocaleString('pt-BR', { month: 'short' }).replace('.', ''),
+        paciente: patientNames[Math.floor(pseudoRandom() * patientNames.length)] + ` (${Math.floor(pseudoRandom()*35 + 40)}a)`,
+        unidade: unit,
+        sitio: site,
+        diagnostico: subDiagnosis,
+        tecnica: tech,
+        acelerador: linac,
+        convenio: payor,
+        status: status,
+        fracaoAtual: fracaoAtual,
+        fracoesTotais: totalFractions,
+        esperaDias: esperaDias,
+        doseGy: (dosePerFraction * totalFractions).toFixed(1),
+        medico: doctors[Math.floor(pseudoRandom() * doctors.length)],
+        fisico: physicists[Math.floor(pseudoRandom() * physicists.length)],
+        dqaPass: pseudoRandom() > 0.05 ? "Aprovado (Gamma > 98%)" : "Revisão Física"
       });
     }
 
-    function updateDashboard() {
-      // Simulação de Recálculo de KPIs dinâmicos ao alterar filtros
-      document.getElementById('kpiPacientes').innerText = Math.floor(Math.random() * 40) + 70;
-      document.getElementById('kpiSessoes').innerText = Math.floor(Math.random() * 50) + 110;
-      
-      chartSitios.data.datasets[0].data = [
-        Math.floor(Math.random() * 30) + 20,
-        Math.floor(Math.random() * 30) + 15,
-        Math.floor(Math.random() * 10) + 5,
-        Math.floor(Math.random() * 10) + 2
-      ];
-      chartSitios.update();
+    let filteredData = [...rawData];
+    let currentPage = 1;
+    const itemsPerPage = 7;
+    let currentSortColumn = 'esperaDias';
+    let currentSortDirection = 'desc';
+
+    let sessionsChartInstance, siteChartInstance, techniqueChartInstance, linacChartInstance, payorWaitChartInstance;
+
+    function applyFilters() {
+      const period = document.getElementById('filterPeriod').value;
+      const unit = document.getElementById('filterUnit').value;
+      const site = document.getElementById('filterSite').value;
+      const technique = document.getElementById('filterTechnique').value;
+      const linac = document.getElementById('filterLINAC').value;
+      const payor = document.getElementById('filterPayor').value;
+
+      filteredData = rawData.filter(item => {
+        if (period !== 'ALL' && item.ano !== period) return false;
+        if (unit !== 'ALL' && item.unidade !== unit) return false;
+        if (site !== 'ALL' && item.sitio !== site) return false;
+        if (technique !== 'ALL' && item.tecnica !== technique) return false;
+        if (linac !== 'ALL' && item.acelerador !== linac) return false;
+        if (payor !== 'ALL' && item.convenio !== payor) return false;
+        return true;
+      });
+
+      const badge = document.getElementById('activeFiltersBadge');
+      badge.innerText = `Exibindo ${filteredData.length} prontuários`;
+
+      currentPage = 1;
+      updateDashboardUI();
     }
 
     function resetFilters() {
-      document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
-      updateDashboard();
+      document.querySelectorAll('select').forEach(s => s.value = 'ALL');
+      document.getElementById('tableSearch').value = '';
+      applyFilters();
     }
 
-    window.onload = initCharts;
+    function updateKPIs() {
+      const activePatients = filteredData.filter(d => d.status === 'Em Andamento');
+      const totalSessions = filteredData.reduce((acc, curr) => acc + curr.fracaoAtual, 0);
+      const avgWait = filteredData.length > 0 ? (filteredData.reduce((acc, curr) => acc + curr.esperaDias, 0) / filteredData.length).toFixed(1) : '0.0';
+
+      document.getElementById('kpiActivePatients').innerText = activePatients.length;
+      document.getElementById('kpiSessionsCount').innerText = totalSessions.toLocaleString('pt-BR');
+      document.getElementById('kpiWaitDays').innerText = `${avgWait}d`;
+      document.getElementById('kpiOccupancyRate').innerText = `${Math.min(98.5, (filteredData.length * 1.85)).toFixed(1)}%`;
+    }
+
+    function generateInsights() {
+      const container = document.getElementById('insightsContainer');
+      container.innerHTML = '';
+      if (filteredData.length === 0) return;
+
+      const siteCounts = {};
+      filteredData.forEach(d => siteCounts[d.sitio] = (siteCounts[d.sitio] || 0) + 1);
+      let topSite = Object.keys(siteCounts).reduce((a, b) => siteCounts[a] > siteCounts[b] ? a : b, 'N/A');
+
+      const cards = [
+        { title: "Predomínio de Sítio", desc: `Maior demanda clínica atual: <strong>${topSite}</strong>.`, icon: "crosshair" },
+        { title: "Uso do Parque Tecnológico", desc: `Alta adesão a VMAT/SBRT nos tratamentos ativos.`, icon: "zap" },
+        { title: "Fila e Metas", desc: `Tempo médio geral: <strong>${(filteredData.reduce((a,b)=>a+b.esperaDias,0)/filteredData.length).toFixed(1)} dias</strong>.`, icon: "clock" }
+      ];
+
+      cards.forEach(card => {
+        const div = document.createElement('div');
+        div.className = "p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex items-start space-x-2.5";
+        div.innerHTML = `
+          <div class="p-1.5 bg-teal-500/10 text-teal-400 rounded-lg shrink-0 mt-0.5"><i data-lucide="${card.icon}" class="w-4 h-4"></i></div>
+          <div><h4 class="text-xs font-bold text-slate-200">${card.title}</h4><p class="text-[11px] text-slate-400 mt-0.5">${card.desc}</p></div>
+        `;
+        container.appendChild(div);
+      });
+      lucide.createIcons();
+    }
+
+    function initCharts() {
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } },
+        scales: {
+          x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } },
+          y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(51, 65, 85, 0.2)' } }
+        }
+      };
+
+      sessionsChartInstance = new Chart(document.getElementById('sessionsChart'), { type: 'line', data: { labels: [], datasets: [] }, options: commonOptions });
+      siteChartInstance = new Chart(document.getElementById('siteChart'), { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } } });
+      techniqueChartInstance = new Chart(document.getElementById('techniqueChart'), { type: 'bar', data: { labels: [], datasets: [] }, options: { ...commonOptions, indexAxis: 'y' } });
+      linacChartInstance = new Chart(document.getElementById('linacChart'), { type: 'bar', data: { labels: [], datasets: [] }, options: commonOptions });
+      payorWaitChartInstance = new Chart(document.getElementById('payorWaitChart'), { type: 'bar', data: { labels: [], datasets: [] }, options: commonOptions });
+    }
+
+    function updateCharts() {
+      const monthsOrder = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
+      const monthlySessions = { "Jan": 120, "Fev": 140, "Mar": 180, "Abr": 160, "Mai": 210, "Jun": 195 };
+
+      sessionsChartInstance.data = {
+        labels: monthsOrder,
+        datasets: [{ label: 'Frações Aplicadas', data: monthsOrder.map(m => monthlySessions[m]), borderColor: '#14b8a6', backgroundColor: 'rgba(20, 184, 166, 0.15)', fill: true, tension: 0.3 }]
+      };
+      sessionsChartInstance.update();
+
+      const siteMap = {};
+      filteredData.forEach(d => siteMap[d.sitio] = (siteMap[d.sitio] || 0) + 1);
+      siteChartInstance.data = { labels: Object.keys(siteMap), datasets: [{ data: Object.values(siteMap), backgroundColor: ['#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b'], borderWidth: 0 }] };
+      siteChartInstance.update();
+
+      const techMap = {};
+      techniques.forEach(t => techMap[t] = 0);
+      filteredData.forEach(d => techMap[d.tecnica] = (techMap[d.tecnica] || 0) + 1);
+      techniqueChartInstance.data = { labels: Object.keys(techMap), datasets: [{ label: 'Pacientes', data: Object.values(techMap), backgroundColor: '#8b5cf6', borderRadius: 4 }] };
+      techniqueChartInstance.update();
+
+      const linacMap = {};
+      linacs.forEach(l => linacMap[l.split(' - ')[0]] = 0);
+      filteredData.forEach(d => linacMap[d.acelerador.split(' - ')[0]] += d.fracaoAtual);
+      linacChartInstance.data = { labels: Object.keys(linacMap), datasets: [{ label: 'Frações Entregues', data: Object.values(linacMap), backgroundColor: '#3b82f6', borderRadius: 4 }] };
+      linacChartInstance.update();
+
+      payorWaitChartInstance.data = { labels: payors, datasets: [{ label: 'Dias Espera', data: [18.2, 8.4, 9.1, 7.8, 6.2], backgroundColor: ['#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#ec4899'], borderRadius: 4 }] };
+      payorWaitChartInstance.update();
+    }
+
+    function updateTable() {
+      const tbody = document.getElementById('patientsTableBody');
+      tbody.innerHTML = '';
+
+      const searchTerm = document.getElementById('tableSearch').value.toLowerCase();
+      let searchedData = filteredData.filter(d => d.id.toLowerCase().includes(searchTerm) || d.paciente.toLowerCase().includes(searchTerm) || d.sitio.toLowerCase().includes(searchTerm));
+
+      const totalItems = searchedData.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const paginatedData = searchedData.slice(startIndex, startIndex + itemsPerPage);
+
+      paginatedData.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition-colors cursor-pointer";
+        tr.onclick = () => openModal(item);
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-semibold text-teal-300">${item.id}</td>
+          <td class="py-2.5 px-3 font-sans font-medium text-slate-200">${item.paciente}</td>
+          <td class="py-2.5 px-3 font-sans text-slate-300">${item.sitio}</td>
+          <td class="py-2.5 px-3 font-sans text-slate-300">${item.tecnica}</td>
+          <td class="py-2.5 px-3 font-sans text-slate-400 text-[11px]">${item.acelerador.split(' - ')[0]}</td>
+          <td class="py-2.5 px-3 text-center font-bold text-slate-100">${item.fracaoAtual}/${item.fracoesTotais}</td>
+          <td class="py-2.5 px-3 text-right ${item.esperaDias > 15 ? 'text-rose-400 font-bold' : 'text-emerald-400'}">${item.esperaDias}d</td>
+          <td class="py-2.5 px-3 font-sans text-slate-400">${item.convenio}</td>
+          <td class="py-2.5 px-3 text-center font-sans"><span class="px-2 py-0.5 rounded-full text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/30">${item.status}</span></td>
+          <td class="py-2.5 px-3 text-center font-sans">
+            <button onclick="event.stopPropagation(); openModalByVal('${item.id}')" class="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-teal-300">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('tableInfo').innerText = `Exibindo ${startIndex + 1} até ${Math.min(startIndex + itemsPerPage, totalItems)} de ${totalItems}`;
+      document.getElementById('pageIndicator').innerText = `${currentPage} / ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = currentPage === 1;
+      document.getElementById('btnNextPage').disabled = currentPage >= totalPages;
+
+      lucide.createIcons();
+    }
+
+    // FUNÇÃO EXPORTAR PRONTUÁRIOS PARA CSV
+    function exportToCSV() {
+      if (filteredData.length === 0) {
+        alert("Não há registros selecionados para exportação.");
+        return;
+      }
+
+      const headers = ["Prontuario", "Paciente", "Unidade", "Sitio", "Diagnostico", "Tecnica", "Acelerador", "FracaoAtual", "FracoesTotais", "EsperaDias", "DoseTotalGy", "Convenio", "Status"];
+      const rows = filteredData.map(d => [
+        d.id, `"${d.paciente}"`, `"${d.unidade}"`, `"${d.sitio}"`, `"${d.diagnostico}"`, `"${d.tecnica}"`, `"${d.acelerador}"`, d.fracaoAtual, d.fracoesTotais, d.esperaDias, d.doseGy, d.convenio, d.status
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Prontuarios_Radioterapia_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function handleSearch() { currentPage = 1; updateTable(); }
+    function changePage(delta) { currentPage += delta; updateTable(); }
+
+    function openModal(item) {
+      document.getElementById('modalTitle').innerText = `Prontuário Radioterápico ${item.id}`;
+      document.getElementById('modalSub').innerText = `Paciente: ${item.paciente} | Início: ${item.dataInicio}`;
+      document.getElementById('modalBody').innerHTML = `
+        <div class="grid grid-cols-2 gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800 font-sans">
+          <div><span class="text-slate-500 block text-[10px]">DIAGNÓSTICO</span><span class="font-bold text-slate-200 text-xs">${item.sitio}</span></div>
+          <div><span class="text-slate-500 block text-[10px]">TÉCNICA</span><span class="text-slate-200 font-semibold text-xs">${item.tecnica}</span></div>
+          <div><span class="text-slate-500 block text-[10px]">ACELERADOR</span><span class="text-slate-300 text-xs">${item.acelerador}</span></div>
+          <div><span class="text-slate-500 block text-[10px]">MÉDICO</span><span class="text-slate-300 text-xs">${item.medico}</span></div>
+        </div>
+        <div class="p-3 bg-teal-950/30 border border-teal-800/40 rounded-xl space-y-1.5 font-mono">
+          <div class="flex justify-between text-xs"><span class="text-slate-400">Progresso:</span><span class="font-bold text-teal-300">${item.fracaoAtual} / ${item.fracoesTotais} (${Math.round((item.fracaoAtual/item.fracoesTotais)*100)}%)</span></div>
+          <div class="w-full bg-slate-800 h-2 rounded-full"><div class="bg-teal-500 h-full rounded-full" style="width: ${(item.fracaoAtual/item.fracoesTotais)*100}%"></div></div>
+        </div>
+      `;
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function openModalByVal(id) { const item = rawData.find(d => d.id === id); if (item) openModal(item); }
+    function closeModal() { document.getElementById('detailModal').classList.add('hidden'); }
+
+    function updateDashboardUI() {
+      updateKPIs();
+      generateInsights();
+      updateCharts();
+      updateTable();
+    }
+
+    window.onload = function() {
+      lucide.createIcons();
+      initCharts();
+      applyFilters();
+    };
   </script>
 </body>
 </html>
