@@ -62,4 +62,4 @@ Generates real-time analytical alerts based on active filter selections (e.g., p
 * **Lucide Icons:** Vector icon library.
 * **AI Copilot (Prompt Engineering):** Accelerated code structuring, component design, and clinical domain logic mapping.
 
----
+
